@@ -1,7 +1,8 @@
 ![AppAuth for Android](https://rawgit.com/openid/AppAuth-Android/master/appauth_lockup.svg)
 
 [![Download](https://api.bintray.com/packages/openid/net.openid/appauth/images/download.svg) ](https://bintray.com/openid/net.openid/appauth/_latestVersion)
-[![Build Status](https://www.bitrise.io/app/a09572dde99baf30.svg?token=DROliGDWTq1SbhaHTid9fw&branch=master)](https://www.bitrise.io/app/a09572dde99baf30)
+[![Javadocs](http://javadoc.io/badge/net.openid/appauth.svg)](http://javadoc.io/doc/net.openid/appauth)
+[![Build Status](https://travis-ci.org/openid/AppAuth-Android.svg?branch=master)](https://travis-ci.org/openid/AppAuth-Android)
 [![Codacy Badge](https://api.codacy.com/project/badge/grade/321412eec811478085ec6c4c923ad8a1)](https://www.codacy.com/app/iainmcgin/AppAuth-Android)
 [![codecov.io](https://codecov.io/github/openid/AppAuth-Android/coverage.svg?branch=master)](https://codecov.io/github/openid/AppAuth-Android?branch=master)
 
@@ -15,7 +16,7 @@ raw protocol flows, convenience methods are available to assist with common
 tasks like performing an action with fresh tokens.
 
 The library follows the best practices set out in
-[OAuth 2.0 for Native Apps](https://tools.ietf.org/html/draft-ietf-oauth-native-apps),
+[RFC 8252 - OAuth 2.0 for Native Apps](https://tools.ietf.org/html/rfc8252),
 including using
 [Custom Tabs](http://developer.android.com/tools/support-library/features.html#custom-tabs)
 for authorization requests. For this reason,
@@ -45,7 +46,7 @@ Both Custom URI Schemes (all supported versions of Android) and App Links (Andro
 be used with the library.
 
 In general, AppAuth can work with any Authorization Server (AS) that supports
-[native apps](https://tools.ietf.org/html/draft-ietf-oauth-native-apps),
+native apps as documented in [RFC 8252](https://tools.ietf.org/html/rfc8252),
 either through custom URI scheme redirects, or App Links.
 AS's that assume all clients are web-based or require clients to maintain
 confidentiality of the client secrets may not work well.
