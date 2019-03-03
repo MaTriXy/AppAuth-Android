@@ -31,6 +31,7 @@ public class BrowserWhitelistTest {
         BrowserWhitelist whitelist = new BrowserWhitelist();
         assertThat(whitelist.matches(Browsers.Chrome.customTab("46"))).isFalse();
         assertThat(whitelist.matches(Browsers.Firefox.standaloneBrowser("10"))).isFalse();
+        assertThat(whitelist.matches(Browsers.Firefox.customTab("57"))).isFalse();
         assertThat(whitelist.matches(Browsers.SBrowser.standaloneBrowser("11"))).isFalse();
     }
 
@@ -40,6 +41,7 @@ public class BrowserWhitelistTest {
         assertThat(whitelist.matches(Browsers.Chrome.standaloneBrowser("46"))).isTrue();
         assertThat(whitelist.matches(Browsers.Chrome.customTab("46"))).isFalse();
         assertThat(whitelist.matches(Browsers.Firefox.standaloneBrowser("10"))).isFalse();
+        assertThat(whitelist.matches(Browsers.Firefox.customTab("57"))).isFalse();
     }
 
     @Test
@@ -50,19 +52,24 @@ public class BrowserWhitelistTest {
         assertThat(whitelist.matches(Browsers.Chrome.standaloneBrowser("46"))).isTrue();
         assertThat(whitelist.matches(Browsers.Chrome.customTab("46"))).isTrue();
         assertThat(whitelist.matches(Browsers.Firefox.standaloneBrowser("10"))).isFalse();
+        assertThat(whitelist.matches(Browsers.Firefox.customTab("57"))).isFalse();
     }
 
     @Test
     public void testMatches_firefoxOrSamsung() {
         BrowserWhitelist whitelist = new BrowserWhitelist(
                 VersionedBrowserMatcher.FIREFOX_BROWSER,
+                VersionedBrowserMatcher.FIREFOX_CUSTOM_TAB,
                 VersionedBrowserMatcher.SAMSUNG_BROWSER,
                 VersionedBrowserMatcher.SAMSUNG_CUSTOM_TAB);
         assertThat(whitelist.matches(Browsers.Chrome.standaloneBrowser("46"))).isFalse();
         assertThat(whitelist.matches(Browsers.Chrome.customTab("46"))).isFalse();
         assertThat(whitelist.matches(Browsers.Firefox.standaloneBrowser("10"))).isTrue();
+        assertThat(whitelist.matches(Browsers.Firefox.customTab("56"))).isFalse();
+        assertThat(whitelist.matches(Browsers.Firefox.customTab("57"))).isTrue();
         assertThat(whitelist.matches(Browsers.SBrowser.standaloneBrowser("10"))).isTrue();
-        assertThat(whitelist.matches(Browsers.SBrowser.customTab("10"))).isTrue();
+        assertThat(whitelist.matches(Browsers.SBrowser.customTab("4.0"))).isTrue();
+        assertThat(whitelist.matches(Browsers.SBrowser.customTab("3.9"))).isFalse();
     }
 
 }

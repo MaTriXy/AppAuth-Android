@@ -17,6 +17,10 @@ android {
         test.setRoot('javatests');
         test.java.srcDir('javatests');
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
     lintOptions {
         warningsAsErrors true
         disable 'InvalidPackage', 'TrulyRandom', 'UseCompoundDrawables', 'GradleDependency'
@@ -39,4 +43,8 @@ task jar(type: Copy, dependsOn:'bundleRelease') {
 task sourcesJar(type: Jar, dependsOn:'generateReleaseSources') {
     from android.sourceSets.main.java.srcDirs
     classifier = 'sources'
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs << "-Xlint:deprecation" << "-Xlint:unchecked"
 }

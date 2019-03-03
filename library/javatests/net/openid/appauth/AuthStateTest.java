@@ -28,20 +28,19 @@ import static net.openid.appauth.TestValues.getTestAuthResponseBuilder;
 import static net.openid.appauth.TestValues.getTestRegistrationResponse;
 import static net.openid.appauth.TestValues.getTestRegistrationResponseBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
 import java.util.Collections;
-import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -433,7 +432,7 @@ public class AuthStateTest {
         verify(action, times(1)).execute(
                 eq(TEST_ACCESS_TOKEN),
                 eq(TEST_ID_TOKEN),
-                isNull(AuthorizationException.class));
+                ArgumentMatchers.<AuthorizationException>isNull());
     }
 
     @Test
@@ -496,9 +495,86 @@ public class AuthStateTest {
         verify(action, times(1)).execute(
                 eq(freshAccessToken),
                 eq(freshIdToken),
-                isNull(AuthorizationException.class));
+                ArgumentMatchers.<AuthorizationException>isNull());
 
         // additionally, the auth state should be updated with the new token values
+        assertThat(state.getAccessToken()).isEqualTo(freshAccessToken);
+        assertThat(state.getAccessTokenExpirationTime()).isEqualTo(freshExpirationTime);
+        assertThat(state.getIdToken()).isEqualTo(freshIdToken);
+    }
+
+    @Test
+    public void testPerformActionWithFreshToken_afterTokenExpiration_multipleActions() {
+        AuthorizationRequest authReq = getMinimalAuthRequestBuilder("id_token token code")
+            .setScope("my_scope")
+            .build();
+
+        AuthorizationResponse authResp = new AuthorizationResponse.Builder(authReq)
+            .setAccessToken(TEST_ACCESS_TOKEN)
+            .setAccessTokenExpirationTime(TWO_MINUTES)
+            .setIdToken(TEST_ID_TOKEN)
+            .setAuthorizationCode(TEST_AUTH_CODE)
+            .setState(authReq.state)
+            .build();
+        TokenResponse tokenResp = getTestAuthCodeExchangeResponse();
+        AuthState state = new AuthState(authResp, tokenResp, null);
+
+        AuthorizationService service = mock(AuthorizationService.class);
+        AuthState.AuthStateAction action = mock(AuthState.AuthStateAction.class);
+
+        // at this point in time, the access token will be considered to be expired
+        mClock.currentTime.set(TWO_MINUTES - AuthState.EXPIRY_TIME_TOLERANCE_MS + ONE_SECOND);
+        state.performActionWithFreshTokens(
+            service,
+            NoClientAuthentication.INSTANCE,
+            Collections.<String, String>emptyMap(),
+            mClock,
+            action);
+        state.performActionWithFreshTokens(
+            service,
+            NoClientAuthentication.INSTANCE,
+            Collections.<String, String>emptyMap(),
+            mClock,
+            action);
+
+        // as the access token has expired, we expect a token refresh request
+        ArgumentCaptor<TokenRequest> requestCaptor = ArgumentCaptor.forClass(TokenRequest.class);
+        ArgumentCaptor<AuthorizationService.TokenResponseCallback> callbackCaptor =
+            ArgumentCaptor.forClass(AuthorizationService.TokenResponseCallback.class);
+
+        verify(service, times(1)).performTokenRequest(
+            requestCaptor.capture(),
+            any(ClientAuthentication.class),
+            callbackCaptor.capture());
+
+        assertThat(requestCaptor.getValue().refreshToken).isEqualTo(tokenResp.refreshToken);
+
+        // the action should not be executed until after the token refresh completes
+        verifyZeroInteractions(action);
+
+        String freshRefreshToken = "fresh_refresh_token";
+        String freshAccessToken = "fresh_access_token";
+        String freshIdToken = "fresh.id.token";
+        Long freshExpirationTime = mClock.currentTime.get() + TWO_MINUTES;
+
+        // simulate success on the token request, with fresh tokens in the result
+        TokenResponse freshResponse = new TokenResponse.Builder(requestCaptor.getValue())
+            .setTokenType(TokenResponse.TOKEN_TYPE_BEARER)
+            .setAccessToken(freshAccessToken)
+            .setAccessTokenExpirationTime(freshExpirationTime)
+            .setIdToken(freshIdToken)
+            .setRefreshToken(freshRefreshToken)
+            .build();
+
+        callbackCaptor.getValue().onTokenRequestCompleted(freshResponse, null);
+        // the action should be invoked in response to the token request completion
+        verify(action, times(2)).execute(
+            eq(freshAccessToken),
+            eq(freshIdToken),
+            ArgumentMatchers.<AuthorizationException>isNull());
+
+        // additionally, the auth state should be updated with the new token values
+        assertThat(state.getRefreshToken()).isEqualTo(freshRefreshToken);
         assertThat(state.getAccessToken()).isEqualTo(freshAccessToken);
         assertThat(state.getAccessTokenExpirationTime()).isEqualTo(freshExpirationTime);
         assertThat(state.getIdToken()).isEqualTo(freshIdToken);

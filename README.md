@@ -18,7 +18,7 @@ tasks like performing an action with fresh tokens.
 The library follows the best practices set out in
 [RFC 8252 - OAuth 2.0 for Native Apps](https://tools.ietf.org/html/rfc8252),
 including using
-[Custom Tabs](http://developer.android.com/tools/support-library/features.html#custom-tabs)
+[Custom Tabs](https://developer.chrome.com/multidevice/android/customtabs)
 for authorization requests. For this reason,
 `WebView` is explicitly *not* supported due to usability and security reasons.
 
@@ -201,7 +201,7 @@ AuthorizationRequest.Builder authRequestBuilder =
     new AuthorizationRequest.Builder(
         serviceConfig, // the authorization service configuration
         MY_CLIENT_ID, // the client ID, typically pre-registered and static
-        ResponseTypeValues.CODE // the response_type value: we want a code
+        ResponseTypeValues.CODE, // the response_type value: we want a code
         MY_REDIRECT_URI); // the redirect URI to which the auth response is sent
 ```
 
@@ -214,7 +214,7 @@ are specified through set methods on the builder:
 
 ```java
 AuthorizationRequest authRequest = authRequestBuilder
-    .setScope("email profile https://idp.example.com/custom-scope")
+    .setScope("openid email profile https://idp.example.com/custom-scope")
     .setLoginHint("jdoe@user.example.com")
     .build();
 ```
@@ -293,7 +293,7 @@ android.defaultConfig.manifestPlaceholders = [
 
 Alternatively, the redirect URI can be directly configured by adding an
 intent-filter for AppAuth's RedirectUriReceiverActivity to your
-AndroidManfiest.xml:
+AndroidManifest.xml:
 
 ```xml
 <activity

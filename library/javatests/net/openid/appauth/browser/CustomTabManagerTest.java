@@ -1,9 +1,11 @@
 package net.openid.appauth.browser;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.customtabs.CustomTabsCallback;
@@ -11,9 +13,8 @@ import android.support.customtabs.CustomTabsClient;
 import android.support.customtabs.CustomTabsService;
 import android.support.customtabs.CustomTabsServiceConnection;
 import android.support.customtabs.CustomTabsSession;
-
+import java.util.List;
 import net.openid.appauth.BuildConfig;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,16 +24,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
-
-import java.util.Arrays;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isNull;
-
 
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class, sdk=16)
@@ -105,7 +97,8 @@ public class CustomTabManagerTest {
         assertThat(session).isEqualTo(mockSession);
 
         // upon creation of the session, the code should prime the session with the expected URIs
-        ArgumentCaptor<List> bundleCaptor = ArgumentCaptor.forClass(List.class);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<Bundle>> bundleCaptor = ArgumentCaptor.forClass(List.class);
         Mockito.verify(mockSession).mayLaunchUrl(
             eq(launchUri1),
             eq((Bundle)null),
@@ -121,6 +114,19 @@ public class CustomTabManagerTest {
     public void testCreateSession_browserDoesNotSupportCustomTabs() {
         startBind(false);
         assertThat(mManager.createSession(null)).isNull();
+    }
+
+    @Test
+    public void testCreateSession_creationFails() {
+        startBind(true);
+        provideClient();
+
+        // Emulate session creation failure - annoyingly the contract for this is just to return
+        // null, rather than an exception with some useful context.
+        CustomTabsCallback mockCallbacks = Mockito.mock(CustomTabsCallback.class);
+        Mockito.doReturn(null).when(mClient).newSession(mockCallbacks);
+
+        assertThat(mManager.createSession(mockCallbacks)).isNull();
     }
 
     @Test
