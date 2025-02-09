@@ -17,10 +17,7 @@ package net.openid.appauth.internal;
 import android.net.Uri;
 import android.net.UrlQuerySanitizer;
 import android.os.Bundle;
-import android.support.customtabs.CustomTabsService;
-
-import net.openid.appauth.BuildConfig;
-import net.openid.appauth.internal.UriUtil;
+import androidx.browser.customtabs.CustomTabsService;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +32,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk=16)
+@Config(sdk = 16)
 public class UriUtilTest {
 
     private UrlQuerySanitizer mSanitizer;
@@ -67,7 +64,7 @@ public class UriUtilTest {
         parameters.put("test2", "value2 value3");
         String query = UriUtil.formUrlEncode(parameters);
 
-        assertThat(query.contains("value2+value3"));
+        assertThat(query).contains("value2+value3");
         mSanitizer.parseQuery(query);
         for (Map.Entry<String, String> param : parameters.entrySet()) {
             assertThat(mSanitizer.getValue(param.getKey())).isEqualTo(param.getValue());

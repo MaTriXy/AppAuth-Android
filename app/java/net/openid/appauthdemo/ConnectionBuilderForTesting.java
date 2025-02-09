@@ -16,9 +16,9 @@ package net.openid.appauthdemo;
 
 import android.annotation.SuppressLint;
 import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.Log;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import net.openid.appauth.Preconditions;
 import net.openid.appauth.connectivity.ConnectionBuilder;
@@ -30,7 +30,6 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
-
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -56,7 +55,7 @@ public final class ConnectionBuilderForTesting implements ConnectionBuilder {
     private static final String HTTP = "http";
     private static final String HTTPS = "https";
 
-    @SuppressLint("TrustAllX509TrustManager")
+    @SuppressLint({"TrustAllX509TrustManager", "CustomX509TrustManager"})
     private static final TrustManager[] ANY_CERT_MANAGER = new TrustManager[] {
             new X509TrustManager() {
                 public X509Certificate[] getAcceptedIssuers() {

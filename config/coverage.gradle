@@ -1,15 +1,15 @@
 apply plugin: 'jacoco'
-jacoco {
-    toolVersion = "0.8.1"
-}
-
 android {
     testOptions {
         unitTests.all {
             jacoco {
                 includeNoLocationClasses = true
+                jacoco.excludes = ['jdk.internal.*']
             }
         }
+    }
+    unitTestVariants.all {
+        it.mergedFlavor.manifestPlaceholders = ['appAuthRedirectScheme': 'net.openid.appauthdemo']
     }
 }
 
@@ -17,14 +17,22 @@ task jacocoTestReport(type: JacocoReport, dependsOn: "testDebugUnitTest") {
     group = "Reporting"
     description = "Generate Jacoco coverage reports after running tests."
     reports {
-        xml.enabled = true
-        html.enabled = true
+        xml.required.set(true)
+        html.required.set(true)
     }
     // Class R is used, but usage will not be covered, so ignore this class from report
-    classDirectories = fileTree(
-            dir: 'build/intermediates/classes/debug',
-            excludes: ['**/BuildConfig.class']
-    )
-    sourceDirectories = files('java')
-    executionData = files('build/jacoco/testDebugUnitTest.exec')
+    afterEvaluate {
+        getClassDirectories().setFrom(
+            fileTree(
+                dir: 'build/intermediates/javac/debug/classes',
+                excludes: ['**/BuildConfig.class']
+            )
+        )
+        getSourceDirectories().setFrom(
+            files('java')
+        )
+        getExecutionData().setFrom(
+            files('build/jacoco/testDebugUnitTest.exec')
+        )
+    }
 }
